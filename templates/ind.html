@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Price Predictor | Advanced AI</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --dark: #0f172a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at top left, #1e1b4b, #0f172a);
+            color: #f1f5f9;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .hero-section {
+            padding: 80px 0 40px;
+            text-align: center;
+        }
+
+        .main-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #cbd5e1;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            color: #fff;
+            border-radius: 12px;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+            color: #fff;
+        }
+
+        .form-control::placeholder {
+            color: #64748b;
+        }
+
+        select option {
+            background: #1e293b;
+            color: #fff;
+        }
+
+        .btn-predict {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            padding: 16px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            width: 100%;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+        }
+
+        .prediction-result {
+            margin-top: 30px;
+            padding: 24px;
+            border-radius: 16px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            display: none;
+        }
+
+        .result-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #818cf8;
+        }
+
+        .upload-section {
+            margin-top: 60px;
+            padding: 40px;
+            border-style: dashed;
+            border-width: 2px;
+            border-color: var(--glass-border);
+            text-align: center;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 3rem;
+            height: 3rem;
+        }
+
+        .car-animation {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+
+        #priceChart {
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container pb-5">
+    <!-- Hero Header -->
+    <div class="hero-section animate__animated animate__fadeInDown">
+        <div class="car-animation"><i class="fas fa-car-side"></i></div>
+        <h1 class="main-title">SmartCar AI Predictor</h1>
+        <p class="subtitle">Experience high-precision car valuation powered by Random Forest ML models. Get instant results based on 2025 market trends.</p>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Form -->
+        <div class="col-lg-8 animate__animated animate__fadeInLeft">
+            <div class="glass-card p-4 p-md-5">
+                <form id="predictionForm">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Company</label>
+                            <select class="form-select" id="company" name="company" required>
+                                <option value="" selected disabled>Choose Brand</option>
+                                {% for company in companies %}
+                                <option value="{{ company }}">{{ company }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Model</label>
+                            <select class="form-select" id="model" name="model" required disabled>
+                                <option value="" selected disabled>Select Company First</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Year of Purchase</label>
+                            <select class="form-select" id="year" name="year" required>
+                                {% for year in years %}
+                                <option value="{{ year }}">{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Fuel Type</label>
+                            <select class="form-select" id="fuel_type" name="fuel_type" required>
+                                {% for fuel in fuel_types %}
+                                <option value="{{ fuel }}">{{ fuel }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Transmission</label>
+                            <select class="form-select" name="transmission" required>
+                                {% for t in transmissions %}
+                                <option value="{{ t }}">{{ t }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">KM Driven</label>
+                            <input type="number" class="form-control" name="km_driven" placeholder="e.g. 25000" min="0" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Owner Type</label>
+                            <select class="form-select" name="owner_type" required>
+                                {% for o in owners %}
+                                <option value="{{ o }}">{{ o }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Engine (CC)</label>
+                            <input type="number" class="form-control" name="engine" placeholder="e.g. 1500" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Mileage (kmpl/range)</label>
+                            <input type="number" step="0.1" class="form-control" name="mileage" placeholder="e.g. 18.5" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-predict">
+                        <i class="fas fa-magic me-2"></i> Calculate Estimated Price
+                    </button>
+                </form>
+
+                <div class="prediction-result text-center animate__animated pulse" id="resultCard">
+                    <h5 class="text-secondary mb-2">Estimated Market Valuation</h5>
+                    <div class="result-value" id="predictionValue">₹ 0</div>
+                    <p class="small text-muted mt-2 mb-0">*This is an AI-driven estimation based on similar market listings.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Actions & Info -->
+        <div class="col-lg-4 animate__animated animate__fadeInRight">
+            <div class="glass-card p-4 mb-4">
+                <h5 class="mb-3"><i class="fas fa-chart-line me-2 text-primary"></i> Market Insights</h5>
+                <canvas id="priceChart"></canvas>
+            </div>
+
+            <div class="glass-card p-4">
+                <h5 class="mb-3"><i class="fas fa-cloud-upload-alt me-2 text-primary"></i> Dynamic Retraining</h5>
+                <p class="small text-muted">Upload a new CSV dataset to retrain the Random Forest model automatically.</p>
+                <div class="mb-3">
+                    <input class="form-control form-control-sm" type="file" id="datasetUpload">
+                </div>
+                <button class="btn btn-outline-primary btn-sm w-100" id="uploadBtn">
+                    Update Model
+                </button>
+                <div id="uploadStatus" class="mt-2 small"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal / Spinner -->
+<div class="modal fade" id="loadingModal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card p-4 text-center border-0">
+            <div class="spinner-border text-primary mx-auto mb-3" style="width: 3rem; height: 3rem;"></div>
+            <h5 class="text-white" id="loadingText">Processing Input...</h5>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Elements
+    const companySelect = document.getElementById('company');
+    const modelSelect = document.getElementById('model');
+    const predictionForm = document.getElementById('predictionForm');
+    const resultCard = document.getElementById('resultCard');
+    const predictionValue = document.getElementById('predictionValue');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const datasetUpload = document.getElementById('datasetUpload');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    const loadingText = document.getElementById('loadingText');
+
+    // Dynamic Model Loading
+    companySelect.addEventListener('change', async () => {
+        const company = companySelect.value;
+        modelSelect.disabled = true;
+        modelSelect.innerHTML = '<option disabled selected>Loading models...</option>';
+
+        try {
+            const res = await fetch(`/get_models/${company}`);
+            const models = await res.json();
+            
+            modelSelect.innerHTML = '';
+            models.forEach(model => {
+                const opt = document.createElement('option');
+                opt.value = model;
+                opt.textContent = model;
+                modelSelect.appendChild(opt);
+            });
+            modelSelect.disabled = false;
+        } catch (err) {
+            console.error(err);
+            modelSelect.innerHTML = '<option disabled>Error loading models</option>';
+        }
+    });
+
+    // Prediction Form Submission
+    predictionForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        loadingText.textContent = "AI Analysis in progress...";
+        loadingModal.show();
+        resultCard.style.display = 'none';
+
+        const formData = new FormData(predictionForm);
+        
+        try {
+            const res = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if(data.prediction) {
+                // Animate value
+                predictionValue.textContent = '₹ ' + data.prediction.toLocaleString('en-IN');
+                setTimeout(() => {
+                    loadingModal.hide();
+                    resultCard.style.display = 'block';
+                }, 800);
+            } else {
+                alert("Error: " + (data.error || "Unknown error"));
+                loadingModal.hide();
+            }
+        } catch (err) {
+            alert("Connection error");
+            loadingModal.hide();
+        }
+    });
+
+    // Dataset Upload & Retraining
+    uploadBtn.addEventListener('click', async () => {
+        const file = datasetUpload.files[0];
+        if(!file) return alert("Select a CSV file first");
+
+        loadingText.textContent = "Updating AI Model... This may take a minute.";
+        loadingModal.show();
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if(data.message) {
+                uploadStatus.innerHTML = `<span class="text-success"><i class="fas fa-check-circle"></i> ${data.message} <br> New R² Score: ${data.r2_score}</span>`;
+                // Refresh page after a delay to update dropdowns if needed
+                setTimeout(() => window.location.reload(), 3000);
+            } else {
+                uploadStatus.innerHTML = `<span class="text-danger"><i class="fas fa-times-circle"></i> ${data.error}</span>`;
+            }
+        } catch (err) {
+            uploadStatus.innerHTML = `<span class="text-danger">Upload failed</span>`;
+        } finally {
+            loadingModal.hide();
+        }
+    });
+
+    // Simple Graph: Price vs Year (Placeholders or actual data from backend could be used)
+    // For this demonstration, we'll use trend data based on the current model's knowledge
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    const priceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['2015', '2017', '2019', '2021', '2023', '2025'],
+            datasets: [{
+                label: 'Avg Market Price Index',
+                data: [400, 550, 750, 950, 1200, 1500],
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#64748b' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#64748b' }
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
