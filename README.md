@@ -71,8 +71,3 @@ The included dataset is meticulously generated and contains features like:
 *   `company`, `model`, `year`, `fuel_type`, `transmission`, `km_driven`, `owner_type`, `mileage`, `engine`, and `price`.
 
 ---
-
-## ✨ Developed by Antigravity (Advanced AI Coding Assistant)
-
-*   **Status**: Production Ready & LinkedIn-worthy.
-*   **Category**: Machine Learning / Full-Stack Web Development.
